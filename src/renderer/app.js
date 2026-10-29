@@ -4413,7 +4413,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (!data || !data.success || !data.streamUrl) {
         if (data && data.needAuth) {
-          maybeShowYtAuthSheet();
+          if (typeof maybeShowYtAuthSheet === 'function') maybeShowYtAuthSheet();
         }
         if (!navigator.onLine) {
           showToast('Offline: this track is not available in local cache');
@@ -4460,7 +4460,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updatePlayPauseButton(false, false);
         if (el.trackLoadingOverlay) el.trackLoadingOverlay.classList.add('hidden');
         if (!track.platform || track.platform === 'youtube' || track.platform === 'ytmusic') {
-          maybeShowYtAuthSheet();
+          if (typeof maybeShowYtAuthSheet === 'function') maybeShowYtAuthSheet();
         }
         showToast(didTimeoutAbort ? 'Stream request timed out' : (err.message || 'Could not load audio stream'), 'error');
       }
@@ -7862,7 +7862,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       showToast('Could not load audio stream', 'error');
       if (!cur.platform || cur.platform === 'youtube' || cur.platform === 'ytmusic') {
-        maybeShowYtAuthSheet();
+        if (typeof maybeShowYtAuthSheet === 'function') maybeShowYtAuthSheet();
       }
     }
 
@@ -7893,6 +7893,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.consecutivePlayFailures = 0;
       document.body.classList.add('is-playing');
       updatePlayPauseButton(true, false);
+      // Start resolving the next track as soon as playback begins instead of
+      // waiting 10s, so the following track starts without a pause.
+      if (!preloadedTrack10sFired) {
+        preloadedTrack10sFired = true;
+        preloadNextTrackStream();
+      }
     });
 
     el.nativeAudio.addEventListener('canplay', () => {
